@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-tests:
+    name: Core-Logik testen
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift-Tests
+        working-directory: Packages/HealthFamCore
+        run: swift test
+
+  build-apps:
+    name: iPhone- & Watch-App bauen
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: XcodeGen installieren
+        run: brew install xcodegen
+      - name: Xcode-Projekt erzeugen
+        run: xcodegen generate
+      - name: iPhone-App (inkl. Watch-App) bauen
+        run: |
+          xcodebuild build -quiet \
+            -project HealthFam.xcodeproj \
+            -scheme HealthFam \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Watch-App bauen
+        run: |
+          xcodebuild build -quiet \
+            -project HealthFam.xcodeproj \
+            -scheme HealthFamWatch \
+            -destination 'generic/platform=watchOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
